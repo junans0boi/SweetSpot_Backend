@@ -1,4 +1,10 @@
+# Gradle 빌드 아티팩트
 /build/
 /.gradle/
 /out/
+
+# IDE 파일
 *.iml
+
+# OS 임시 파일
+.DS_Store
