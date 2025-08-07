@@ -1,13 +1,13 @@
-package com.hollywood.sweetspot;
+package com.hollywood.sweetspot_backend;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class SweetspotApplication {
+public class SweetspotBackendApplication {
 
 	public static void main(String[] args) {
-		SpringApplication.run(SweetspotApplication.class, args);
+		SpringApplication.run(SweetspotBackendApplication.class, args);
 	}
 
 }
