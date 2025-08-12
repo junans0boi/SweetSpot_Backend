@@ -14,9 +14,9 @@ java {
 }
 
 configurations {
-    compileOnly {
-        extendsFrom annotationProcessor
-    }
+    compileOnly { extendsFrom annotationProcessor }
+    developmentOnly
+    runtimeClasspath { extendsFrom developmentOnly }
 }
 
 repositories {
@@ -24,10 +24,13 @@ repositories {
 }
 
 dependencies {
+    developmentOnly 'org.springframework.boot:spring-boot-devtools'
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
     implementation 'org.springframework.boot:spring-boot-starter-security'
     implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+    implementation 'com.github.ben-manes.caffeine:caffeine:3.1.8'
 
     // ★ MariaDB JDBC driver (런타임에 필요)
     runtimeOnly 'org.mariadb.jdbc:mariadb-java-client:3.5.2'
