@@ -1,5 +1,7 @@
 package com.hollywood.sweetspot.auth;
 
-// Signup 요청
-public record SignupRequest(String email, String password) {
-}
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+
+
+public record SignupRequest(@Email String email, @NotBlank String password) {}
