@@ -18,23 +18,19 @@ public class SecurityConfig {
     private final CustomUserDetailsService uds;
     private final RestAuthEntryPoint authEntryPoint;
     private final RestAccessDeniedHandler accessDeniedHandler;
-    private final OAuth2UserServiceImpl oAuth2UserServiceImpl;
-    private final OAuth2SuccessHandler oAuth2SuccessHandler;
+    
 
     public SecurityConfig(
             JwtUtils j,
             CustomUserDetailsService u,
             RestAuthEntryPoint ep,
-            RestAccessDeniedHandler ad,
-            OAuth2UserServiceImpl oAuth2UserServiceImpl, // ⬅️ 추가
-            OAuth2SuccessHandler oAuth2SuccessHandler // ⬅️ 추가
+            RestAccessDeniedHandler ad
     ) {
         this.jwtUtils = j;
         this.uds = u;
         this.authEntryPoint = ep;
         this.accessDeniedHandler = ad;
-        this.oAuth2UserServiceImpl = oAuth2UserServiceImpl; // ⬅️
-        this.oAuth2SuccessHandler = oAuth2SuccessHandler; // ⬅️
+        
     }
 
     @Bean
@@ -71,18 +67,9 @@ public class SecurityConfig {
                     "/api/auth/signin",
                     "/api/auth/signup",
                     "/api/auth/refresh",
-                    "/oauth2/**",
-                    "/login/oauth2/**",
-                    "/api/auth/complete",
-                    "/auth/google/start",
                     "/actuator/health"
                 ).permitAll()
                 .anyRequest().authenticated())
-            // ✅ OAuth2 로그인 활성화 + 우리 서비스들 연결
-            .oauth2Login(oauth -> oauth
-                .userInfoEndpoint(ui -> ui.oidcUserService(oAuth2UserServiceImpl))
-                .successHandler(oAuth2SuccessHandler)
-            )
             .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
