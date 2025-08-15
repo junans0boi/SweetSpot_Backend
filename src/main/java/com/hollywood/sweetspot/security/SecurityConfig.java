@@ -11,26 +11,29 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.*;
 
 import java.util.List;
-
 @Configuration
 public class SecurityConfig {
     private final JwtUtils jwtUtils;
     private final CustomUserDetailsService uds;
     private final RestAuthEntryPoint authEntryPoint;
     private final RestAccessDeniedHandler accessDeniedHandler;
-    
+    private final OAuth2UserServiceImpl oAuth2UserServiceImpl;
+    private final OAuth2SuccessHandler oAuth2SuccessHandler;
 
     public SecurityConfig(
             JwtUtils j,
             CustomUserDetailsService u,
             RestAuthEntryPoint ep,
-            RestAccessDeniedHandler ad
+            RestAccessDeniedHandler ad,
+            OAuth2UserServiceImpl oAuth2UserServiceImpl,
+            OAuth2SuccessHandler oAuth2SuccessHandler
     ) {
         this.jwtUtils = j;
         this.uds = u;
         this.authEntryPoint = ep;
         this.accessDeniedHandler = ad;
-        
+        this.oAuth2UserServiceImpl = oAuth2UserServiceImpl;
+        this.oAuth2SuccessHandler = oAuth2SuccessHandler;
     }
 
     @Bean
@@ -42,10 +45,9 @@ public class SecurityConfig {
     CorsConfigurationSource corsConfigurationSource() {
         var cfg = new CorsConfiguration();
         cfg.setAllowedOriginPatterns(List.of("*"));
-        cfg.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
-        cfg.setAllowedHeaders(List.of("Authorization", "Content-Type", "X-Requested-With"));
+        cfg.setAllowedMethods(List.of("GET","POST","PUT","DELETE","PATCH","OPTIONS"));
+        cfg.setAllowedHeaders(List.of("Authorization","Content-Type","X-Requested-With"));
         cfg.setAllowCredentials(true);
-
         var source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", cfg);
         return source;
@@ -64,12 +66,23 @@ public class SecurityConfig {
                 .accessDeniedHandler(accessDeniedHandler))
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(
-                    "/api/auth/signin",
-                    "/api/auth/signup",
-                    "/api/auth/refresh",
+                    // JWT 엔드포인트
+                    "/api/auth/**",
+                    // OAuth 엔드포인트
+                    "/oauth2/**",
+                    "/login/oauth2/**",
+                    "/auth/google/start",
+                    "/api/auth/complete",
+                    // 헬스체크
                     "/actuator/health"
                 ).permitAll()
                 .anyRequest().authenticated())
+            // ✅ OAuth 활성화
+            .oauth2Login(oauth -> oauth
+                .userInfoEndpoint(ui -> ui.oidcUserService(oAuth2UserServiceImpl))
+                .successHandler(oAuth2SuccessHandler)
+            )
+            // ✅ JWT 필터
             .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();

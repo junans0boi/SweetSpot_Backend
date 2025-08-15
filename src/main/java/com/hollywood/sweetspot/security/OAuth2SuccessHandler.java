@@ -69,9 +69,16 @@ public class OAuth2SuccessHandler
         String mode = readModeFromCookie(req);
 
         if ("web".equalsIgnoreCase(mode)) {
+            // (선택) 웹에서도 쿠키 넣고 싶으면 유지
             addCookie(res, "SS_ACCESS", access, true);
             addCookie(res, "SS_REFRESH", refreshToken, true);
-            res.sendRedirect(webRedirect);
+
+            // ✅ 웹도 ticket으로 SPA로 보내서 프론트가 /api/auth/complete 호출해 토큰을 확보
+            String ticket = storeTicket(access, refreshToken);
+            String url = UriComponentsBuilder.fromUriString(webRedirect) // app.oauth2.redirect.web
+                    .queryParam("ticket", ticket)
+                    .build().toUriString();
+            res.sendRedirect(url);
         } else {
             String ticket = storeTicket(access, refreshToken);
             String deeplink = UriComponentsBuilder.fromUriString(mobileRedirect)

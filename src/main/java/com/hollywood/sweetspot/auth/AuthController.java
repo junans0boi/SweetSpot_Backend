@@ -12,6 +12,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.beans.factory.annotation.Value;
 
 import java.util.Map;
 
@@ -23,6 +24,10 @@ public class AuthController {
     private final PasswordEncoder encoder;
     private final JwtUtils jwtUtils;
     private final RefreshTokenService refreshSvc;
+    @Value("${app.oauth2.cookie.secure:false}")
+    boolean cookieSecure;
+    @Value("${app.oauth2.cookie.domain:}")
+    String cookieDomain;
 
     public AuthController(AuthenticationManager a, UserRepository r, PasswordEncoder e, JwtUtils j,
             RefreshTokenService rs) {
@@ -46,6 +51,7 @@ public class AuthController {
                 .email(req.email())
                 .password(encoder.encode(req.password()))
                 .roles("USER")
+                .name(req.name())
                 .build();
         userRepo.save(user);
         return Map.of("status", "OK", "message", "User registered");
@@ -105,7 +111,10 @@ public class AuthController {
         c.setPath("/");
         c.setMaxAge(0);
         c.setHttpOnly(true);
-        c.setSecure(false); // 운영은 true
+        c.setSecure(cookieSecure);
+        if (cookieDomain != null && !cookieDomain.isEmpty()) {
+            c.setDomain(cookieDomain); // ← 설정 때와 동일해야 삭제됨
+        }
         res.addCookie(c);
     }
 }
