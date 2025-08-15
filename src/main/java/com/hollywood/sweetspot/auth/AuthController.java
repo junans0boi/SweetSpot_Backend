@@ -57,6 +57,11 @@ public class AuthController {
         return Map.of("status", "OK", "message", "User registered");
     }
 
+    @GetMapping("/exists")
+    public Map<String, Boolean> exists(@RequestParam @Email String email) {
+        return Map.of("exists", userRepo.existsByEmail(email));
+    }
+
     @PostMapping("/signin")
     public JwtWithRefresh signin(@RequestBody LoginRequest req) {
         Authentication authentication = authManager.authenticate(
