@@ -1,0 +1,18 @@
+# src/main/resources/static/oauth/success.html
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>Login Success</title></head>
+<body>
+  <h1>✅ 로그인 성공</h1>
+  <p>이 페이지는 백엔드에서 띄운 확인용입니다.</p>
+  <p>쿠키(SS_ACCESS / SS_REFRESH)가 설정되었는지 개발자도구 > Application > Cookies에서 확인하세요.</p>
+  <button id="me">/api/auth/me 호출</button>
+  <pre id="out"></pre>
+  <script>
+    document.getElementById('me').onclick = async () => {
+      const r = await fetch('/api/auth/me', { credentials: 'include' });
+      document.getElementById('out').textContent = await r.text();
+    };
+  </script>
+</body>
+</html>
