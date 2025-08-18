@@ -23,17 +23,24 @@ public class NaverMapsClient {
      */
     public List<GeoAddress> geocode(String query, String lang) {
         try {
-            var url = "/map-geocode/v2/geocode?query=" +
-                    URLEncoder.encode(query, StandardCharsets.UTF_8) +
-                    (lang != null && lang.equalsIgnoreCase("en") ? "&language=eng" : "");
+            // 1) 주소 보정(붙은 패턴에 스페이스 넣어주기) — 예: "대학로12길" -> "대학로 12길"
+            String normalized = normalizeKoreanAddress(query);
+
             JsonNode root = naverMapsWebClient.get()
-                    .uri(url)
+                    .uri(uriBuilder -> uriBuilder
+                            .path("/map-geocode/v2/geocode")
+                            .queryParam("query", normalized)
+                            // 영어 요청시만 language 파라미터
+                            .queryParam((lang != null && lang.equalsIgnoreCase("en")) ? "language" : "",
+                                    (lang != null && lang.equalsIgnoreCase("en")) ? "eng" : null)
+                            .build())
                     .retrieve()
                     .bodyToMono(JsonNode.class)
                     .block();
 
             List<GeoAddress> list = new ArrayList<>();
-            if (root == null || !root.has("addresses")) return list;
+            if (root == null || !root.has("addresses"))
+                return list;
 
             for (JsonNode a : root.get("addresses")) {
                 GeoAddress dto = GeoAddress.builder()
@@ -51,10 +58,27 @@ public class NaverMapsClient {
                         .build();
                 list.add(dto);
             }
+
             return list;
         } catch (Exception e) {
             throw new RuntimeException("NAVER geocode failed: " + e.getMessage(), e);
         }
+    }
+
+    // ---- 아래 helper 하나 추가 ----
+    private static String normalizeKoreanAddress(String s) {
+        if (s == null)
+            return null;
+        String out = s.trim();
+        // "대학로12길" -> "대학로 12길"
+        out = out.replaceAll("로(\\d+길)", "로 $1");
+        // "OO로XX" -> "OO로 XX" (예: "강남대로240" -> "강남대로 240")
+        out = out.replaceAll("로(\\d+)(?!길)", "로 $1");
+        // "OO길XX" -> "OO길 XX" (예: "방배천로길3" 같은 변형 대비)
+        out = out.replaceAll("길(\\d+)", "길 $1");
+        // 중복 공백 정리
+        out = out.replaceAll("\\s+", " ");
+        return out;
     }
 
     /**
@@ -72,13 +96,14 @@ public class NaverMapsClient {
                     .bodyToMono(JsonNode.class)
                     .block();
 
-            if (root == null || !root.has("results")) return Optional.empty();
+            if (root == null || !root.has("results"))
+                return Optional.empty();
 
             // roadaddr 우선, 없으면 addr → admcode 순
             JsonNode road = findResult(root.get("results"), "roadaddr");
             JsonNode addr = (road != null) ? road : findResult(root.get("results"), "addr");
-            JsonNode adm  = findResult(root.get("results"), "admcode");
-            JsonNode legal= findResult(root.get("results"), "legalcode");
+            JsonNode adm = findResult(root.get("results"), "admcode");
+            JsonNode legal = findResult(root.get("results"), "legalcode");
 
             String sido = regionName(adm, legal, "area1");
             String sigungu = regionName(adm, legal, "area2");
@@ -111,9 +136,11 @@ public class NaverMapsClient {
     // ---------- helpers ----------
 
     private static JsonNode findResult(JsonNode results, String name) {
-        if (results == null) return null;
+        if (results == null)
+            return null;
         for (JsonNode r : results) {
-            if (name.equalsIgnoreCase(r.path("name").asText())) return r;
+            if (name.equalsIgnoreCase(r.path("name").asText()))
+                return r;
         }
         return null;
     }
@@ -145,7 +172,8 @@ public class NaverMapsClient {
     }
 
     private static String extractAddrElement(JsonNode a, String type) {
-        if (a == null || !a.has("addressElements")) return null;
+        if (a == null || !a.has("addressElements"))
+            return null;
         for (JsonNode el : a.get("addressElements")) {
             for (JsonNode t : el.path("types")) {
                 if (type.equalsIgnoreCase(t.asText())) {
@@ -160,15 +188,20 @@ public class NaverMapsClient {
     }
 
     private static Double parseDouble(String s) {
-        try { return (s == null) ? null : Double.parseDouble(s); }
-        catch (Exception e) { return null; }
+        try {
+            return (s == null) ? null : Double.parseDouble(s);
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     private static String join(String sep, String... parts) {
         StringBuilder sb = new StringBuilder();
         for (String p : parts) {
-            if (p == null || p.isBlank()) continue;
-            if (sb.length() > 0) sb.append(sep);
+            if (p == null || p.isBlank())
+                continue;
+            if (sb.length() > 0)
+                sb.append(sep);
             sb.append(p);
         }
         return sb.toString();
@@ -176,7 +209,8 @@ public class NaverMapsClient {
 
     private static String firstNonEmpty(String... s) {
         for (String v : s) {
-            if (v != null && !v.isBlank()) return v;
+            if (v != null && !v.isBlank())
+                return v;
         }
         return null;
     }
