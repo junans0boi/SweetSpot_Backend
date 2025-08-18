@@ -74,7 +74,7 @@ public class SecurityConfig {
                     "/auth/google/start",
                     "/api/auth/complete",
                     // 헬스체크
-                    "/actuator/health"
+                    "/actuator/health"            
                 ).permitAll()
                 .anyRequest().authenticated())
             // ✅ OAuth 활성화
