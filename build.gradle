@@ -32,7 +32,7 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-validation'
     implementation 'com.github.ben-manes.caffeine:caffeine:3.1.8'
     implementation 'org.springframework.boot:spring-boot-starter-mail'
-    implementation 'org.springframework.boot:spring-boot-starter-webflux' // WebClient
+
     // ★ MariaDB JDBC driver (런타임에 필요)
     runtimeOnly 'org.mariadb.jdbc:mariadb-java-client:3.5.2'
 
