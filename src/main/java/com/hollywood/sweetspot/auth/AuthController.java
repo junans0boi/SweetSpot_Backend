@@ -6,6 +6,7 @@ import com.hollywood.sweetspot.security.JwtUtils;
 
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
 import org.springframework.security.authentication.*;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
