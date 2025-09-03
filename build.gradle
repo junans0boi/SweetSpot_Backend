@@ -9,7 +9,7 @@ version = '0.0.1-SNAPSHOT'
 
 java {
     toolchain {
-        languageVersion = JavaLanguageVersion.of(17)
+        languageVersion = JavaLanguageVersion.of(21)
     }
 }
 
@@ -32,6 +32,7 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-validation'
     implementation 'com.github.ben-manes.caffeine:caffeine:3.1.8'
     implementation 'org.springframework.boot:spring-boot-starter-mail'
+    testRuntimeOnly 'com.h2database:h2:2.2.224'
 
     // ★ MariaDB JDBC driver (런타임에 필요)
     runtimeOnly 'org.mariadb.jdbc:mariadb-java-client:3.5.2'
